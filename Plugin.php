@@ -1,12 +1,12 @@
 <?php
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
- * PostsCategoryChange
+ * 批量更改文章分类 原版 By <a href ="https://huangweitong.com">FuzQing</a>
  *
- * @package 批量更改文章分类
- * @author Fuzqing
- * @version 0.0.1
- * @link https://huangweitong.com
+ * @package PostsCategoryChange
+ * @author Ryan	
+ * @version 0.0.2
+ * @link http://blog.iplayloli.com
  */
 class PostsCategoryChange_Plugin implements Typecho_Plugin_Interface
 {
@@ -26,7 +26,7 @@ class PostsCategoryChange_Plugin implements Typecho_Plugin_Interface
     public static function activate()
     {
         Helper::addAction('imanage-posts', 'PostsCategoryChange_Action');
-        Typecho_Plugin::factory('admin/manage-posts.php')->bottom = array(__CLASS__, 'render');
+        Typecho_Plugin::factory('admin/footer.php')->end = array( __CLASS__, 'render');
     }
 
     /**
@@ -68,28 +68,25 @@ class PostsCategoryChange_Plugin implements Typecho_Plugin_Interface
      */
     public static function render()
     {
+        // 判断页面
+        $url = $_SERVER['PHP_SELF'];
+        $filename= substr( $url , strrpos($url , '/')+1);
+        if (strpos("manage-posts.php", $filename) === false)
+            return;
+        
         $db = Typecho_Db::get();
-
         $prefix = $db->getPrefix();
-
         $options = Typecho_Widget::widget('Widget_Options');
-
+        
+        // 获取目录列表
         $category_list = $db->fetchAll($db->select()->from($prefix.'metas')->where('type = ?', 'category'));
-
-
         $makeChange_url = Typecho_Common::url('/index.php/action/imanage-posts?do=change-category', $options->siteUrl);
-
         $category_html = '<select name="icategory" id="category" style="width: 100%">';
-
         $category_html .= '<option value="0">请选择一个分类</option>';
-
         foreach ($category_list as $category) {
-
             $category_html .= "<option value=\"{$category['mid']}\">{$category['name']}</option>";
-
         }
         $category_html .= '</select>';
-
         $script = <<<SCRIPT
         <script src="//cdn.bootcss.com/layer/3.1.0/layer.js"></script>
     <script>
